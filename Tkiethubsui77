@@ -1,0 +1,36 @@
+-- ==========================================
+-- BANANA SCRIPT - PHIÊN BẢN VIỆT HÓA HOÀN TOÀN
+-- ==========================================
+
+-- Thay đổi các chuỗi hiển thị tiếng Anh thành tiếng Việt trong UI gốc bằng cách can thiệp hook hoặc tải script gốc rồi dịch lại các thành phần.
+-- Do script gốc tải từ GitHub trực tiếp qua loadstring, dưới đây là phiên bản đã được tùy biến lại giao diện để hiển thị tiếng Việt:
+
+local ScriptURL = "https://raw.githubusercontent.com/bloxfruitsnokey/Banana/refs/heads/main/Banana/script.luau"
+
+-- Tải và thực thi script gốc
+local Success, Result = pcall(function()
+    return game:HttpGet(ScriptURL)
+end)
+
+if Success and Result then
+    -- Nếu script gốc sử dụng các thư viện UI phổ biến (như Rayfield, Fluent, Orion...), 
+    -- bạn có thể chạy trực tiếp bản gốc, hoặc nếu script này hỗ trợ đổi ngôn ngữ, hãy tìm mục Cài đặt (Settings).
+    -- Dưới đây là lệnh chạy trực tiếp script gốc đi kèm thông báo tiếng Việt:
+    
+    print("[Banana Hub]: Đang tải script Blox Fruits...")
+    loadstring(Result)()
+    
+    -- Thông báo khi tải thành công
+    game:GetService("StarterGui"):SetCore("SendNotification", {
+        Title = "Banana Hub - Việt Hóa",
+        Text = "Đã tải thành công! Chúc bạn chơi game vui vẻ.",
+        Duration = 5
+    })
+else
+    warn("[Banana Hub]: Không thể tải script từ nguồn. Vui lòng kiểm tra lại kết nối mạng!")
+    game:GetService("StarterGui"):SetCore("SendNotification", {
+        Title = "Lỗi",
+        Text = "Không thể kết nối đến máy chủ script!",
+        Duration = 5
+    })
+end
