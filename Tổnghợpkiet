@@ -1,0 +1,151 @@
+local CoreGui = game:GetService("CoreGui")
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+
+-- Xóa menu cũ nếu đang chạy để tránh bị trùng
+if CoreGui:FindFirstChild("TongHopHubGui") then
+    CoreGui.TongHopHubGui:Destroy()
+end
+
+-- Tạo ScreenGui chính
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Parent = CoreGui
+ScreenGui.Name = "TongHopHubGui"
+ScreenGui.ResetOnSpawn = false
+
+-- Nút Toggle On/Off Menu (Nằm ở góc trái màn hình)
+local ToggleBtn = Instance.new("TextButton")
+ToggleBtn.Parent = ScreenGui
+ToggleBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+ToggleBtn.Position = UDim2.new(0, 20, 0.5, -25)
+ToggleBtn.Size = UDim2.new(0, 70, 0, 35)
+ToggleBtn.Font = Enum.Font.SourceSansBold
+ToggleBtn.Text = "Menu"
+ToggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+ToggleBtn.TextSize = 14
+ToggleBtn.Active = true
+ToggleBtn.Draggable = true
+
+local ToggleCorner = Instance.new("UICorner")
+ToggleCorner.CornerRadius = UDim.new(0, 6)
+ToggleCorner.Parent = ToggleBtn
+
+-- Khung viền cầu vồng (Rainbow Stroke bọc bên ngoài MainFrame)
+local RainbowStroke = Instance.new("UIStroke")
+RainbowStroke.Thickness = 3
+RainbowStroke.Transparency = 0
+
+-- MainFrame (Menu chính)
+local MainFrame = Instance.new("Frame")
+MainFrame.Parent = ScreenGui
+MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+MainFrame.Position = UDim2.new(0.5, -110, 0.5, -150)
+MainFrame.Size = UDim2.new(0, 220, 0, 305)
+MainFrame.Active = true
+MainFrame.Draggable = true
+
+RainbowStroke.Parent = MainFrame
+
+local MainCorner = Instance.new("UICorner")
+MainCorner.CornerRadius = UDim.new(0, 8)
+MainCorner.Parent = MainFrame
+
+-- Tiêu đề Menu
+local Title = Instance.new("TextLabel")
+Title.Parent = MainFrame
+Title.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+Title.Size = UDim2.new(1, 0, 0, 40)
+Title.Font = Enum.Font.SourceSansBold
+Title.Text = "Blox Fruits Hub Selector"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.TextSize = 15
+
+local TitleCorner = Instance.new("UICorner")
+TitleCorner.CornerRadius = UDim.new(0, 8)
+TitleCorner.Parent = Title
+
+-- ScrollingFrame chứa danh sách các nút để có thể cuộn lên xuống
+local ScrollingFrame = Instance.new("ScrollingFrame")
+ScrollingFrame.Parent = MainFrame
+ScrollingFrame.BackgroundTransparency = 1
+ScrollingFrame.Position = UDim2.new(0, 0, 0, 44)
+ScrollingFrame.Size = UDim2.new(1, 0, 1, -44)
+ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 0) -- Sẽ tự động cập nhật bởi UIListLayout
+ScrollingFrame.ScrollBarThickness = 4
+ScrollingFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
+
+-- Layout sắp xếp danh sách nút bên trong ScrollingFrame
+local UIListLayout = Instance.new("UIListLayout")
+UIListLayout.Parent = ScrollingFrame
+UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+UIListLayout.Padding = UDim.new(0, 6)
+UIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+
+-- Padding cách đều phía trên và xung quanh
+local UIPadding = Instance.new("UIPadding")
+UIPadding.Parent = ScrollingFrame
+UIPadding.PaddingTop = UDim.new(0, 6)
+UIPadding.PaddingBottom = UDim.new(0, 10)
+UIPadding.PaddingLeft = UDim.new(0, 10)
+UIPadding.PaddingRight = UDim.new(0, 10)
+
+-- Hàm tạo nút bấm script
+local function createButton(name, callback)
+    local btn = Instance.new("TextButton")
+    btn.Parent = ScrollingFrame
+    btn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    btn.Size = UDim2.new(1, 0, 0, 38)
+    btn.Font = Enum.Font.SourceSansBold
+    btn.Text = name
+    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btn.TextSize = 14
+    
+    local btnCorner = Instance.new("UICorner")
+    btnCorner.CornerRadius = UDim.new(0, 6)
+    btnCorner.Parent = btn
+    
+    btn.MouseButton1Click:Connect(callback)
+end
+
+-- Thêm các Hub (Thoải mái thêm nút mới mà không sợ bị tràn màn hình)
+createButton("1. Zis Hub", function()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/LuaCrack/Zis/refs/heads/main/ZisChuoiEng"))()
+end)
+
+createButton("2. Tkiet Hub", function()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/tkiet7hub96/Kietsui7Hubhehe/refs/heads/main/Tkiethubsui77"))()
+end)
+
+createButton("3. Banana Hub", function()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/bloxfruitsnokey/Banana/refs/heads/main/Banana/script.luau"))()
+end)
+
+createButton("4. Trident Hub", function()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/bloxfruitsnokey/Banana/refs/heads/main/Trident/script.luau"))()
+end)
+
+createButton("5. Kid Hub", function()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/realkidhub/realkid/refs/heads/main/main.lua"))()
+end)
+
+-- Hỗ trợ cuộn bằng chuột (Wheel) khi rê chuột vào menu
+ScrollingFrame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseWheel then
+        ScrollingFrame.CanvasPosition = ScrollingFrame.CanvasPosition - Vector2.new(0, input.Position.Z * 30)
+    end
+end)
+
+-- Hiệu ứng chuyển màu cầu vồng liên tục cho viền menu
+RunService.RenderStepped:Connect(function()
+    local hue = tick() % 5 / 5
+    RainbowStroke.Color = Color3.fromHSV(hue, 1, 1)
+end)
+
+-- Tính năng On/Off (Ẩn/Hiện bảng chính khi bấm nút Toggle)
+local isOpen = true
+ToggleBtn.MouseButton1Click:Connect(function()
+    isOpen = not isOpen
+    MainFrame.Visible = isOpen
+    ToggleBtn.Text = isOpen and "Hide" or "Show"
+end)
