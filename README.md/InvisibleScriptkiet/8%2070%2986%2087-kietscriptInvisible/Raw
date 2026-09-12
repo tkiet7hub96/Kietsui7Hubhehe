@@ -1,0 +1,194 @@
+-- FE Invisible + Red Highlight + Smooth Movement Fix
+local CoreGui = game:GetService("CoreGui")
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+
+local Player = Players.LocalPlayer
+local RealCharacter = Player.Character or Player.CharacterAdded:Wait()
+local IsInvisible = false
+local Keybind = "E"
+
+-- Xóa UI cũ nếu có để tránh trùng lặp
+if CoreGui:FindFirstChild("FEInvisMenu") then
+    CoreGui.FEInvisMenu:Destroy()
+end
+
+-- Tạo ScreenGui chứa Menu
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "FEInvisMenu"
+ScreenGui.Parent = CoreGui
+ScreenGui.ResetOnSpawn = false
+
+-- Khung Menu chính
+local MainFrame = Instance.new("Frame")
+MainFrame.Size = UDim2.new(0, 220, 0, 150)
+MainFrame.Position = UDim2.new(0.05, 0, 0.4, 0)
+MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+MainFrame.BorderSizePixel = 0
+MainFrame.Active = true
+MainFrame.Draggable = true
+MainFrame.Parent = ScreenGui
+
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = UDim.new(0, 8)
+UICorner.Parent = MainFrame
+
+-- Tiêu đề Menu
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, 0, 0, 40)
+Title.BackgroundTransparency = 1
+Title.Text = "FE Invisible Menu"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.TextSize = 16
+Title.Font = Enum.Font.SourceSansBold
+Title.Parent = MainFrame
+
+-- Nút bật/tắt tàng hình trong Menu
+local ToggleButton = Instance.new("TextButton")
+ToggleButton.Size = UDim2.new(0.85, 0, 0, 45)
+ToggleButton.Position = UDim2.new(0.075, 0, 0.4, 0)
+ToggleButton.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+ToggleButton.BorderSizePixel = 0
+ToggleButton.Text = "Tàng hình: TẮT"
+ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+ToggleButton.TextSize = 14
+ToggleButton.Font = Enum.Font.SourceSansBold
+ToggleButton.Parent = MainFrame
+
+local ButtonCorner = Instance.new("UICorner")
+ButtonCorner.CornerRadius = UDim.new(0, 6)
+ButtonCorner.Parent = ToggleButton
+
+-- Nút thu gọn / mở rộng menu
+local MinimizeButton = Instance.new("TextButton")
+MinimizeButton.Size = UDim2.new(0, 30, 0, 30)
+MinimizeButton.Position = UDim2.new(1, -35, 0, 5)
+MinimizeButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+MinimizeButton.BorderSizePixel = 0
+MinimizeButton.Text = "-"
+MinimizeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+MinimizeButton.TextSize = 16
+MinimizeButton.Font = Enum.Font.SourceSansBold
+MinimizeButton.Parent = MainFrame
+
+local MinCorner = Instance.new("UICorner")
+MinCorner.CornerRadius = UDim.new(0, 6)
+MinCorner.Parent = MinimizeButton
+
+local minimized = false
+MinimizeButton.MouseButton1Click:Connect(function()
+    minimized = not minimized
+    ToggleButton.Visible = not minimized
+    MainFrame.Size = minimized and UDim2.new(0, 220, 0, 45) or UDim2.new(0, 220, 0, 150)
+    MinimizeButton.Text = minimized and "+" or "-"
+end)
+
+-- Tạo Part ẩn dưới đất để chứa nhân vật không hoạt động
+local Part = Instance.new("Part", workspace)
+Part.Name = "InvisPlatform"
+Part.Anchored = true
+Part.Size = Vector3.new(200, 1, 200)
+Part.CFrame = CFrame.new(0, -500, 0)
+Part.CanCollide = true
+
+RealCharacter.Archivable = true
+local FakeCharacter = RealCharacter:Clone()
+
+local RedHighlight = Instance.new("Highlight")
+RedHighlight.Name = "RedChams"
+RedHighlight.FillColor = Color3.fromRGB(255, 0, 0)
+RedHighlight.FillTransparency = 0.8
+RedHighlight.OutlineColor = Color3.fromRGB(255, 0, 0)
+RedHighlight.OutlineTransparency = 0
+RedHighlight.Adornee = FakeCharacter
+RedHighlight.Parent = FakeCharacter
+
+FakeCharacter.Parent = workspace
+FakeCharacter.HumanoidRootPart.CFrame = Part.CFrame + Vector3.new(0, 5, 0)
+
+for _, v in ipairs(FakeCharacter:GetDescendants()) do
+    if v:IsA("BasePart") then
+        v.Transparency = 0.8
+        v.CanCollide = false -- Tránh việc va chạm nhân vật giả gây kẹt phím di chuyển
+    elseif v:IsA("Decal") then
+        v.Transparency = 0.8
+    end
+end
+
+local CanInvis = true
+
+local function SetupCharacter()
+    RealCharacter.Humanoid.Died:Connect(function()
+        if FakeCharacter then FakeCharacter:Destroy() end
+        if Part then Part:Destroy() end
+        ScreenGui:Destroy()
+    end)
+end
+SetupCharacter()
+
+Player.CharacterAdded:Connect(function(newChar)
+    RealCharacter = newChar
+    RealCharacter.Archivable = true
+    IsInvisible = false
+    if FakeCharacter then FakeCharacter:Destroy() end
+    if Part then Part:Destroy() end
+    ScreenGui:Destroy()
+end)
+
+local function Invisible()
+    if not CanInvis or not RealCharacter or not FakeCharacter then return end
+    
+    local RealRoot = RealCharacter:FindFirstChild("HumanoidRootPart")
+    local FakeRoot = FakeCharacter:FindFirstChild("HumanoidRootPart")
+    local RealHumanoid = RealCharacter:FindFirstChildOfClass("Humanoid")
+    local FakeHumanoid = FakeCharacter:FindFirstChildOfClass("Humanoid")
+    
+    if not RealRoot or not FakeRoot or not RealHumanoid or not FakeHumanoid then return end
+
+    if not IsInvisible then
+        -- Lưu vị trí và chuyển nhân vật thật xuống dưới hố, đưa nhân vật giả lên chỗ người chơi
+        local CurrentCF = RealRoot.CFrame
+        RealRoot.CFrame = FakeRoot.CFrame
+        FakeRoot.CFrame = CurrentCF
+        
+        workspace.CurrentCamera.CameraSubject = FakeHumanoid
+        IsInvisible = true
+        ToggleButton.Text = "Tàng hình: BẬT"
+        ToggleButton.BackgroundColor3 = Color3.fromRGB(0, 200, 100)
+    else
+        -- Đưa nhân vật thật trở lại vị trí cũ
+        local CurrentCF = FakeRoot.CFrame
+        FakeRoot.CFrame = RealRoot.CFrame
+        RealRoot.CFrame = CurrentCF
+        
+        workspace.CurrentCamera.CameraSubject = RealHumanoid
+        IsInvisible = false
+        ToggleButton.Text = "Tàng hình: TẮT"
+        ToggleButton.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+    end
+end
+
+-- Đồng bộ chuyển động mượt mà giữa nhân vật thật và giả liên tục mỗi khung hình
+RunService.Stepped:Connect(function()
+    if not RealCharacter or not FakeCharacter then return end
+    local RealRoot = RealCharacter:FindFirstChild("HumanoidRootPart")
+    local FakeRoot = FakeCharacter:FindFirstChild("HumanoidRootPart")
+    
+    if RealRoot and FakeRoot then
+        if IsInvisible then
+            -- Khi tàng hình: Nhân vật thật ở dưới sẽ copy tọa độ chuyển động tương ứng với nhân vật giả ở trên màn hình
+            -- Giúp giữ mạng và điều khiển mượt mà
+            local offset = FakeRoot.CFrame - FakeRoot.Position
+            RealRoot.CFrame = CFrame.new(Part.Position + Vector3.new(0, 5, 0)) + (FakeRoot.Position - Part.Position)
+        end
+    end
+end)
+
+ToggleButton.MouseButton1Click:Connect(Invisible)
+
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if not gameProcessed and input.KeyCode == Enum.KeyCode[Keybind] then
+        Invisible()
+    end
+end)
