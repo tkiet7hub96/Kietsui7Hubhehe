@@ -1,0 +1,211 @@
+local Players = game:GetService("Players")
+local CoreGui = game:GetService("CoreGui")
+local UserInputService = game:GetService("UserInputService")
+local player = Players.LocalPlayer
+
+-- Xóa UI cũ nếu chạy lại script
+if CoreGui:FindFirstChild("GodModeMenuGui") then
+    CoreGui.GodModeMenuGui:Destroy()
+end
+
+-- 1. Tạo ScreenGui chính
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "GodModeMenuGui"
+screenGui.Parent = CoreGui
+
+-- 2. Tạo nút mở/đóng menu (Toggle Button thu gọn)
+local toggleBtn = Instance.new("TextButton")
+toggleBtn.Name = "ToggleMenuBtn"
+toggleBtn.Size = UDim2.new(0, 110, 0, 40)
+toggleBtn.Position = UDim2.new(0, 30, 0, 150)
+toggleBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+toggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+toggleBtn.Text = "Menu: OFF"
+toggleBtn.TextSize = 14
+toggleBtn.Font = Enum.Font.GothamBold
+toggleBtn.Parent = screenGui
+
+local toggleCorner = Instance.new("UICorner")
+toggleCorner.CornerRadius = UDim.new(0, 8)
+toggleCorner.Parent = toggleBtn
+
+-- 3. Tạo Main Menu Frame (Có thể kéo thả)
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "MainFrame"
+mainFrame.Size = UDim2.new(0, 240, 0, 180)
+mainFrame.Position = UDim2.new(0, 160, 0, 150)
+mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+mainFrame.BorderSizePixel = 0
+mainFrame.Visible = false -- Mặc định ẩn, bấm nút Toggle để bật
+mainFrame.Parent = screenGui
+
+local mainCorner = Instance.new("UICorner")
+mainCorner.CornerRadius = UDim.new(0, 10)
+mainCorner.Parent = mainFrame
+
+-- Tiêu đề Menu
+local titleLabel = Instance.new("TextLabel")
+titleLabel.Size = UDim2.new(1, 0, 0, 40)
+titleLabel.BackgroundTransparency = 1
+titleLabel.Text = "God Mode Control"
+titleLabel.TextColor3 = Color3.fromRGB(0, 255, 255)
+titleLabel.TextSize = 16
+titleLabel.Font = Enum.Font.GothamBold
+titleLabel.Parent = mainFrame
+
+-- 4. Tạo nút bật/tắt tính năng God Mode trong Menu
+local godModeBtn = Instance.new("TextButton")
+godModeBtn.Name = "GodModeToggleBtn"
+godModeBtn.Size = UDim2.new(0, 200, 0, 45)
+godModeBtn.Position = UDim2.new(0, 20, 0, 55)
+godModeBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+godModeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+godModeBtn.Text = "God Mode: OFF"
+godModeBtn.TextSize = 14
+godModeBtn.Font = Enum.Font.GothamSemibold
+godModeBtn.Parent = mainFrame
+
+local btnCorner = Instance.new("UICorner")
+btnCorner.CornerRadius = UDim.new(0, 6)
+btnCorner.Parent = godModeBtn
+
+-- 5. Tính năng kéo thả (Draggable) cho cả Nút mở menu và Menu chính
+local function makeDraggable(guiObject)
+    local dragging, dragInput, dragStart, startPos
+
+    guiObject.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPos = guiObject.Position
+            
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                end
+            end)
+        end
+    end)
+
+    guiObject.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+            dragInput = input
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(input)
+        if input == dragInput and dragging then
+            local delta = input.Position - dragStart
+            guiObject.Position = UDim2.new(
+                startPos.X.Scale, 
+                startPos.X.Offset + delta.X, 
+                startPos.Y.Scale, 
+                startPos.Y.Offset + delta.Y
+            )
+        end
+    end)
+end
+
+makeDraggable(toggleBtn)
+makeDraggable(mainFrame)
+
+-- 6. Logic xử lý God Mode & Vòng tròn
+local isGodModeEnabled = false
+local activeConnection = nil
+
+local function cleanupEffects()
+    local character = player.Character
+    if character then
+        local rootPart = character:FindFirstChild("HumanoidRootPart")
+        if rootPart then
+            local aura = rootPart:FindFirstChild("GodModeAura")
+            if aura then aura:Destroy() end
+        end
+        local tag = character:FindFirstChild("GodModeConnectionTag")
+        if tag then tag:Destroy() end
+    end
+    if activeConnection then
+        activeConnection:Disconnect()
+        activeConnection = nil
+    end
+end
+
+local function applyGodMode()
+    cleanupEffects()
+    local character = player.Character or player.CharacterAdded:Wait()
+    local humanoid = character:WaitForChild("Humanoid")
+    local rootPart = character:WaitForChild("HumanoidRootPart")
+
+    -- Tạo hiệu ứng vòng tròn
+    local existingVFX = rootPart:FindFirstChild("GodModeAura")
+    if not existingVFX then
+        local p = Instance.new("Part")
+        p.Name = "GodModeAura"
+        p.Size = Vector3.new(6, 0.2, 6)
+        p.Shape = Enum.PartType.Cylinder
+        p.Anchored = false
+        p.CanCollide = false
+        p.Transparency = 0.4
+        p.BrickColor = BrickColor.new("Cyan")
+        p.Material = Enum.Material.Neon
+        
+        local weld = Instance.new("WeldConstraint")
+        weld.Part0 = rootPart
+        weld.Part1 = p
+        weld.Parent = p
+
+        p.CFrame = rootPart.CFrame * CFrame.new(0, -3, 0)
+        p.Parent = rootPart
+    end
+
+    -- Khóa máu tối đa
+    activeConnection = humanoid.HealthChanged:Connect(function()
+        if isGodModeEnabled and humanoid.Health < humanoid.MaxHealth then
+            humanoid.Health = humanoid.MaxHealth
+        end
+    end)
+
+    local tag = Instance.new("BoolValue")
+    tag.Name = "GodModeConnectionTag"
+    tag.Parent = character
+end
+
+-- Sự kiện bấm nút On/Off Menu chính
+toggleBtn.MouseButton1Click:Connect(function()
+    mainFrame.Visible = not mainFrame.Visible
+    if mainFrame.Visible then
+        toggleBtn.Text = "Menu: ON"
+        toggleBtn.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
+    else
+        toggleBtn.Text = "Menu: OFF"
+        toggleBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    end
+end)
+
+-- Sự kiện bấm nút On/Off God Mode
+godModeBtn.MouseButton1Click:Connect(function()
+    isGodModeEnabled = not isGodModeEnabled
+    if isGodModeEnabled then
+        godModeBtn.Text = "God Mode: ON"
+        godModeBtn.BackgroundColor3 = Color3.fromRGB(0, 170, 0)
+        applyGodMode()
+    else
+        godModeBtn.Text = "God Mode: OFF"
+        godModeBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+        cleanupEffects()
+    end
+end)
+
+-- Tự động áp dụng lại khi nhân vật hồi sinh nếu God Mode đang bật
+player.CharacterAdded:Connect(function(newCharacter)
+    newCharacter:WaitForChild("Humanoid").Died:Connect(function()
+        cleanupEffects()
+    end)
+    
+    if isGodModeEnabled then
+        task.wait(1)
+        applyGodMode()
+    end
+end)
+
+print("UI Menu God Mode đã sẵn sàng!")
