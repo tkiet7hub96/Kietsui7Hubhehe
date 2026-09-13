@@ -1,0 +1,404 @@
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local player = Players.LocalPlayer
+
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "ThkietEzV3"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = player:WaitForChild("PlayerGui")
+
+local savedCFrame = nil
+local savedCFrames = {}
+local isMenuOpen = true
+
+-- Thu nhỏ Menu chính (Từ 220x280 xuống 180x230)
+local mainFrame = Instance.new("Frame")
+mainFrame.Size = UDim2.new(0, 180, 0, 230)
+mainFrame.Position = UDim2.new(0.5, -90, 0.5, -115)
+mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+mainFrame.BackgroundTransparency = 0.3
+mainFrame.Parent = screenGui
+
+local mainCorner = Instance.new("UICorner")
+mainCorner.CornerRadius = UDim.new(0, 15)
+mainCorner.Parent = mainFrame
+
+local mainStroke = Instance.new("UIStroke")
+mainStroke.Thickness = 5
+mainStroke.Parent = mainFrame
+
+local mainGradient = Instance.new("UIGradient")
+mainGradient.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 255, 255)),
+    ColorSequenceKeypoint.new(0.2, Color3.fromRGB(0, 120, 255)),
+    ColorSequenceKeypoint.new(0.4, Color3.fromRGB(170, 0, 255)),
+    ColorSequenceKeypoint.new(0.6, Color3.fromRGB(255, 0, 128)),
+    ColorSequenceKeypoint.new(0.8, Color3.fromRGB(255, 128, 0)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 255, 255))
+}
+mainGradient.Parent = mainStroke
+
+task.spawn(function()
+    while screenGui.Parent do
+        task.wait(0.03)
+        mainGradient.Rotation = (mainGradient.Rotation + 2) % 360
+    end
+end)
+
+local titleLabel = Instance.new("TextLabel")
+titleLabel.Size = UDim2.new(1, -35, 0, 35)
+titleLabel.Position = UDim2.new(0, 0, 0, 0)
+titleLabel.BackgroundTransparency = 1
+titleLabel.Text = "ThkietEz V3"
+titleLabel.TextColor3 = Color3.new(1, 1, 1)
+titleLabel.Font = Enum.Font.GothamBold
+titleLabel.TextSize = 17
+titleLabel.Parent = mainFrame
+
+local buttonContainer = Instance.new("Frame")
+buttonContainer.Size = UDim2.new(1, -16, 1, -40)
+buttonContainer.Position = UDim2.new(0, 8, 0, 38)
+buttonContainer.BackgroundTransparency = 1
+buttonContainer.Parent = mainFrame
+
+local toggleMainBtn = Instance.new("TextButton")
+toggleMainBtn.Size = UDim2.new(0, 30, 0, 30)
+toggleMainBtn.Position = UDim2.new(1, -33, 0, 3)
+toggleMainBtn.BackgroundColor3 = Color3.fromRGB(0, 170, 0)
+toggleMainBtn.Text = "-"
+toggleMainBtn.TextColor3 = Color3.new(1, 1, 1)
+toggleMainBtn.Font = Enum.Font.GothamBold
+toggleMainBtn.TextScaled = true
+toggleMainBtn.Parent = mainFrame
+
+local toggleMainCorner = Instance.new("UICorner")
+toggleMainCorner.CornerRadius = UDim.new(0, 8)
+toggleMainCorner.Parent = toggleMainBtn
+
+toggleMainBtn.MouseButton1Click:Connect(function()
+    isMenuOpen = not isMenuOpen
+    buttonContainer.Visible = isMenuOpen
+    if isMenuOpen then
+        toggleMainBtn.Text = "-"
+        toggleMainBtn.BackgroundColor3 = Color3.fromRGB(0, 170, 0)
+        mainFrame.Size = UDim2.new(0, 180, 0, 230)
+    else
+        toggleMainBtn.Text = "+"
+        toggleMainBtn.BackgroundColor3 = Color3.fromRGB(170, 0, 0)
+        mainFrame.Size = UDim2.new(0, 180, 0, 40)
+    end
+end)
+
+-- Kéo GUI chính
+local dragging = false
+local dragInput = nil
+local dragStart = nil
+local startPos = nil
+
+local function updateInput(input)
+    if dragging then
+        local delta = input.Position - dragStart
+        mainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+end
+
+titleLabel.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = mainFrame.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+titleLabel.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        dragInput = input
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        updateInput(input)
+    end
+end)
+
+local listLayout = Instance.new("UIListLayout")
+listLayout.Padding = UDim.new(0, 8)
+listLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+listLayout.Parent = buttonContainer
+
+local function createButton(text, color)
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(0.95, 0, 0, 35)
+    btn.BackgroundColor3 = color
+    btn.Text = text
+    btn.TextColor3 = Color3.new(1, 1, 1)
+    btn.Font = Enum.Font.GothamBold
+    btn.TextSize = 14
+    btn.TextScaled = true
+    btn.Parent = buttonContainer
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 8)
+    corner.Parent = btn
+    
+    return btn
+end
+
+local saveSingleBtn = createButton("Lưu vị trí", Color3.fromRGB(0, 170, 0))
+saveSingleBtn.MouseButton1Click:Connect(function()
+    local char = player.Character
+    if char and char:FindFirstChild("HumanoidRootPart") then
+        savedCFrame = char.HumanoidRootPart.CFrame
+        saveSingleBtn.Text = "Đã lưu!"
+        task.wait(1)
+        saveSingleBtn.Text = "Lưu vị trí"
+    end
+end)
+
+local tpSingleBtn = createButton("Dịch chuyển về vị trí", Color3.fromRGB(0, 0, 170))
+tpSingleBtn.MouseButton1Click:Connect(function()
+    if savedCFrame then
+        local char = player.Character
+        if char and char:FindFirstChild("HumanoidRootPart") then
+            char.HumanoidRootPart.CFrame = savedCFrame
+        end
+    end
+end)
+
+local saveMultiBtn = createButton("Lưu nhiều vị trí", Color3.fromRGB(170, 0, 0))
+saveMultiBtn.MouseButton1Click:Connect(function()
+    local char = player.Character
+    if char and char:FindFirstChild("HumanoidRootPart") then
+        table.insert(savedCFrames, char.HumanoidRootPart.CFrame)
+        saveMultiBtn.Text = "Đã lưu #" .. #savedCFrames
+        task.wait(1)
+        saveMultiBtn.Text = "Lưu nhiều vị trí"
+    end
+end)
+
+local multiFrame = nil
+local confirmFrame = nil
+local openMultiFrame
+
+openMultiFrame = function()
+    if multiFrame then
+        multiFrame:Destroy()
+        multiFrame = nil
+    end
+    
+    if #savedCFrames == 0 then return end
+    
+    multiFrame = Instance.new("Frame")
+    multiFrame.Size = UDim2.new(0, 260, 0, 350)
+    multiFrame.Position = UDim2.new(0.5, -130, 0.5, -175)
+    multiFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+    multiFrame.BackgroundTransparency = 0.3
+    multiFrame.Parent = screenGui
+    
+    local mCorner = Instance.new("UICorner")
+    mCorner.CornerRadius = UDim.new(0, 15)
+    mCorner.Parent = multiFrame
+    
+    local mStroke = Instance.new("UIStroke")
+    mStroke.Thickness = 5
+    mStroke.Parent = multiFrame
+    
+    local mGradient = Instance.new("UIGradient")
+    mGradient.Color = mainGradient.Color
+    mGradient.Parent = mStroke
+    
+    task.spawn(function()
+        while multiFrame and multiFrame.Parent do
+            task.wait(0.03)
+            mGradient.Rotation = (mGradient.Rotation + 2) % 360
+        end
+    end)
+    
+    local mTitle = Instance.new("TextLabel")
+    mTitle.Size = UDim2.new(1, -35, 0, 35)
+    mTitle.BackgroundTransparency = 1
+    mTitle.Text = "Vị trí đã lưu (" .. #savedCFrames .. ")"
+    mTitle.TextColor3 = Color3.new(1, 1, 1)
+    mTitle.Font = Enum.Font.GothamBold
+    mTitle.TextSize = 16
+    mTitle.Parent = multiFrame
+    
+    local closeBtn = Instance.new("TextButton")
+    closeBtn.Size = UDim2.new(0, 30, 0, 30)
+    closeBtn.Position = UDim2.new(1, -33, 0, 3)
+    closeBtn.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+    closeBtn.Text = "X"
+    closeBtn.TextColor3 = Color3.new(1, 1, 1)
+    closeBtn.Font = Enum.Font.GothamBold
+    closeBtn.TextScaled = true
+    closeBtn.Parent = multiFrame
+    
+    local closeCorner = Instance.new("UICorner")
+    closeCorner.CornerRadius = UDim.new(0, 8)
+    closeCorner.Parent = closeBtn
+    
+    closeBtn.MouseButton1Click:Connect(function()
+        multiFrame:Destroy()
+        multiFrame = nil
+    end)
+    
+    local mDragging = false
+    local mDragInput = nil
+    local mDragStart = nil
+    local mStartPos = nil
+    
+    local function mUpdateInput(input)
+        if mDragging then
+            local delta = input.Position - mDragStart
+            multiFrame.Position = UDim2.new(mStartPos.X.Scale, mStartPos.X.Offset + delta.X, mStartPos.Y.Scale, mStartPos.Y.Offset + delta.Y)
+        end
+    end
+    
+    mTitle.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            mDragging = true
+            mDragStart = input.Position
+            mStartPos = multiFrame.Position
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    mDragging = false
+                end
+            end)
+        end
+    end)
+    
+    mTitle.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+            mDragInput = input
+        end
+    end)
+    
+    UserInputService.InputChanged:Connect(function(input)
+        if input == mDragInput and mDragging then
+            mUpdateInput(input)
+        end
+    end)
+    
+    local scrolling = Instance.new("ScrollingFrame")
+    scrolling.Size = UDim2.new(1, -16, 1, -50)
+    scrolling.Position = UDim2.new(0, 8, 0, 42)
+    scrolling.BackgroundTransparency = 1
+    scrolling.ScrollBarThickness = 6
+    scrolling.Parent = multiFrame
+    
+    local scrollLayout = Instance.new("UIListLayout")
+    scrollLayout.Padding = UDim.new(0, 6)
+    scrollLayout.Parent = scrolling
+    
+    for i, cf in ipairs(savedCFrames) do
+        local itemContainer = Instance.new("Frame")
+        itemContainer.Size = UDim2.new(1, -6, 0, 38)
+        itemContainer.BackgroundTransparency = 1
+        itemContainer.Parent = scrolling
+
+        local posBtn = Instance.new("TextButton")
+        posBtn.Size = UDim2.new(1, -42, 1, 0)
+        posBtn.BackgroundColor3 = Color3.fromRGB(0, 120, 120)
+        posBtn.Text = "Lưu " .. i
+        posBtn.TextColor3 = Color3.new(1, 1, 1)
+        posBtn.Font = Enum.Font.GothamBold
+        posBtn.TextSize = 14
+        posBtn.TextScaled = true
+        posBtn.Parent = itemContainer
+        
+        local posCorner = Instance.new("UICorner")
+        posCorner.CornerRadius = UDim.new(0, 8)
+        posCorner.Parent = posBtn
+        
+        posBtn.MouseButton1Click:Connect(function()
+            local char = player.Character
+            if char and char:FindFirstChild("HumanoidRootPart") then
+                char.HumanoidRootPart.CFrame = cf
+            end
+        end)
+
+        local deleteItemBtn = Instance.new("TextButton")
+        deleteItemBtn.Size = UDim2.new(0, 35, 1, 0)
+        deleteItemBtn.Position = UDim2.new(1, -35, 0, 0)
+        deleteItemBtn.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
+        deleteItemBtn.Text = "X"
+        deleteItemBtn.TextColor3 = Color3.new(1, 1, 1)
+        deleteItemBtn.Font = Enum.Font.GothamBold
+        deleteItemBtn.TextSize = 14
+        deleteItemBtn.Parent = itemContainer
+
+        local delCorner = Instance.new("UICorner")
+        delCorner.CornerRadius = UDim.new(0, 8)
+        delCorner.Parent = deleteItemBtn
+        
+        deleteItemBtn.MouseButton1Click:Connect(function()
+            if confirmFrame then confirmFrame:Destroy() end
+            
+            confirmFrame = Instance.new("Frame")
+            confirmFrame.Size = UDim2.new(0, 180, 0, 110)
+            confirmFrame.Position = UDim2.new(0.5, -90, 0.5, -55)
+            confirmFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+            confirmFrame.Parent = screenGui
+            
+            local cCorner = Instance.new("UICorner")
+            cCorner.CornerRadius = UDim.new(0, 10)
+            cCorner.Parent = confirmFrame
+            
+            local cTitle = Instance.new("TextLabel")
+            cTitle.Size = UDim2.new(1, 0, 0, 35)
+            cTitle.BackgroundTransparency = 1
+            cTitle.Text = "Xóa Lưu " .. i .. "?"
+            cTitle.TextColor3 = Color3.new(1, 1, 1)
+            cTitle.Font = Enum.Font.GothamBold
+            cTitle.TextSize = 15
+            cTitle.Parent = confirmFrame
+            
+            local confirmDeleteBtn = Instance.new("TextButton")
+            confirmDeleteBtn.Size = UDim2.new(0.45, -6, 0, 35)
+            confirmDeleteBtn.Position = UDim2.new(0, 8, 1, -43)
+            confirmDeleteBtn.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
+            confirmDeleteBtn.Text = "Xóa"
+            confirmDeleteBtn.TextColor3 = Color3.new(1, 1, 1)
+            confirmDeleteBtn.Font = Enum.Font.GothamBold
+            confirmDeleteBtn.Parent = confirmFrame
+            local dCorner = Instance.new("UICorner", confirmDeleteBtn)
+            dCorner.CornerRadius = UDim.new(0, 6)
+            
+            local cancelBtn = Instance.new("TextButton")
+            cancelBtn.Size = UDim2.new(0.45, -6, 0, 35)
+            cancelBtn.Position = UDim2.new(0.55, 2, 1, -43)
+            cancelBtn.BackgroundColor3 = Color3.fromRGB(0, 120, 0)
+            cancelBtn.Text = "Hủy"
+            cancelBtn.TextColor3 = Color3.new(1, 1, 1)
+            cancelBtn.Font = Enum.Font.GothamBold
+            cancelBtn.Parent = confirmFrame
+            local canCorner = Instance.new("UICorner", cancelBtn)
+            canCorner.CornerRadius = UDim.new(0, 6)
+            
+            confirmDeleteBtn.MouseButton1Click:Connect(function()
+                table.remove(savedCFrames, i)
+                confirmFrame:Destroy()
+                if multiFrame then
+                    multiFrame:Destroy()
+                    multiFrame = nil
+                end
+                openMultiFrame()
+            end)
+            
+            cancelBtn.MouseButton1Click:Connect(function()
+                confirmFrame:Destroy()
+            end)
+        end)
+    end
+    
+    scrolling.CanvasSize = UDim2.new(0, 0, 0, scrollLayout.AbsoluteContentSize.Y + 15)
+end
+
+local tpMultiBtn = createButton("Dịch chuyển (nhiều)", Color3.fromRGB(170, 170, 0))
+tpMultiBtn.MouseButton1Click:Connect(openMultiFrame)
