@@ -1,0 +1,44 @@
+-- Tạo GUI và nút Reset hình tròn có chữ R
+local Players = game:GetService("Players")
+local localPlayer = Players.LocalPlayer
+local playerGui = localPlayer:WaitForChild("PlayerGui")
+
+-- 1. Tạo ScreenGui chứa nút bấm
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "ResetButtonGui"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = playerGui
+
+-- 2. Tạo nút hình tròn (TextButton)
+local resetButton = Instance.new("TextButton")
+resetButton.Name = "CircleResetButton"
+resetButton.Size = UDim2.new(0, 60, 0, 60) -- Kích thước rộng 60, cao 60 pixel
+resetButton.Position = UDim2.new(0.9, -70, 0.1, 0) -- Vị trí ở góc trên bên phải màn hình
+resetButton.BackgroundColor3 = Color3.fromRGB(255, 75, 75) -- Màu đỏ tươi
+resetButton.Text = "R" -- Đổi chữ thành "R"
+resetButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+resetButton.TextSize = 24 -- Tăng cỡ chữ lên cho đẹp
+resetButton.Font = Enum.Font.GothamBold
+resetButton.Parent = screenGui
+
+-- 3. Bo tròn nút để thành hình tròn hoàn hảo
+local uiCorner = Instance.new("UICorner")
+uiCorner.CornerRadius = UDim.new(1, 0) -- Đặt bán kính bo tròn 100% để thành hình tròn
+uiCorner.Parent = resetButton
+
+-- 4. Thêm viền nhẹ cho đẹp mắt
+local uiStroke = Instance.new("UIStroke")
+uiStroke.Color = Color3.fromRGB(255, 255, 255)
+uiStroke.Thickness = 2
+uiStroke.Parent = resetButton
+
+-- 5. Xử lý sự kiện khi người chơi bấm vào nút
+resetButton.MouseButton1Click:Connect(function()
+    local character = localPlayer.Character
+    if character then
+        local humanoid = character:FindFirstChildOfClass("Humanoid")
+        if humanoid then
+            humanoid.Health = 0 -- Cho máu về 0 để reset nhân vật
+        end
+    end
+end)
