@@ -1,0 +1,260 @@
+-- Kiểm tra và xóa GUI cũ nếu đã tồn tại để tránh bị trùng lặp
+local CoreGui = game:GetService("CoreGui")
+if CoreGui:FindFirstChild("KietGuiV3") then
+    CoreGui.KietGuiV3:Destroy()
+end
+
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "KietGuiV3"
+ScreenGui.Parent = CoreGui
+ScreenGui.ResetOnSpawn = false
+
+-- Khung chính chứa toàn bộ giao diện (Màu nền xanh lá như trong ảnh)
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Size = UDim2.new(0, 260, 0, 130)
+MainFrame.Position = UDim2.new(0.4, 0, 0.4, 0)
+MainFrame.BackgroundColor3 = Color3.fromRGB(115, 230, 50) -- Xanh lá
+MainFrame.BorderSizePixel = 2
+MainFrame.Active = true
+MainFrame.Draggable = true -- Cho phép kéo thả bảng GUI
+MainFrame.Parent = ScreenGui
+
+-- 1. Nút Đóng [X] (Màu đỏ)
+local CloseBtn = Instance.new("TextButton")
+CloseBtn.Size = UDim2.new(0, 65, 0, 40)
+CloseBtn.Position = UDim2.new(0, 0, 0, 0)
+CloseBtn.BackgroundColor3 = Color3.fromRGB(220, 20, 60) -- Đỏ
+CloseBtn.Text = "X"
+CloseBtn.TextColor3 = Color3.fromRGB(0, 0, 0)
+CloseBtn.TextSize = 24
+CloseBtn.Font = Enum.Font.SourceSansBold
+CloseBtn.Parent = MainFrame
+
+CloseBtn.MouseButton1Click:Connect(function()
+    ScreenGui:Destroy()
+end)
+
+-- 2. Nút Thu nhỏ [-] (Màu tím nhạt)
+local MinimizeBtn = Instance.new("TextButton")
+MinimizeBtn.Size = UDim2.new(0, 65, 0, 40)
+MinimizeBtn.Position = UDim2.new(0, 65, 0, 0)
+MinimizeBtn.BackgroundColor3 = Color3.fromRGB(200, 170, 235) -- Tím nhạt
+MinimizeBtn.Text = "-"
+MinimizeBtn.TextColor3 = Color3.fromRGB(0, 0, 0)
+MinimizeBtn.TextSize = 24
+MinimizeBtn.Font = Enum.Font.SourceSansBold
+MinimizeBtn.Parent = MainFrame
+
+local isMinimized = false
+MinimizeBtn.MouseButton1Click:Connect(function()
+    isMinimized = not isMinimized
+    -- Ẩn/hiện các thành phần khác khi thu nhỏ
+    for _, child in ipairs(MainFrame:GetChildren()) do
+        if child ~= MinimizeBtn and child ~= CloseBtn and child:IsA("GuiObject") then
+            child.Visible = not isMinimized
+        end
+    end
+    MainFrame.Size = isMinimized and UDim2.new(0, 130, 0, 40) or UDim2.new(0, 260, 0, 130)
+end)
+
+-- 3. Tiêu đề [KIET V3] (Màu hồng)
+local TitleLabel = Instance.new("TextLabel")
+TitleLabel.Size = UDim2.new(0, 130, 0, 40)
+TitleLabel.Position = UDim2.new(0, 130, 0, 0)
+TitleLabel.BackgroundColor3 = Color3.fromRGB(235, 90, 200) -- Hồng
+TitleLabel.Text = "KIET V3"
+TitleLabel.TextColor3 = Color3.fromRGB(0, 0, 0)
+TitleLabel.TextSize = 20
+TitleLabel.Font = Enum.Font.SourceSansBold
+TitleLabel.Parent = MainFrame
+
+-- 4. Nút [UP] (Màu xanh ngọc nhạt)
+local UpBtn = Instance.new("TextButton")
+UpBtn.Size = UDim2.new(0, 65, 0, 45)
+UpBtn.Position = UDim2.new(0, 0, 0, 40)
+UpBtn.BackgroundColor3 = Color3.fromRGB(150, 245, 160) -- Xanh lá nhạt
+UpBtn.Text = "UP"
+UpBtn.TextColor3 = Color3.fromRGB(0, 0, 0)
+UpBtn.TextSize = 18
+UpBtn.Font = Enum.Font.SourceSansBold
+UpBtn.Parent = MainFrame
+
+-- 5. Nút [+] Tăng tốc (Màu xanh dương tím)
+local SpeedUpBtn = Instance.new("TextButton")
+SpeedUpBtn.Size = UDim2.new(0, 65, 0, 45)
+SpeedUpBtn.Position = UDim2.new(0, 65, 0, 40)
+SpeedUpBtn.BackgroundColor3 = Color3.fromRGB(140, 140, 225) -- Xanh tím
+SpeedUpBtn.Text = "+"
+SpeedUpBtn.TextColor3 = Color3.fromRGB(0, 0, 0)
+SpeedUpBtn.TextSize = 22
+SpeedUpBtn.Font = Enum.Font.SourceSansBold
+SpeedUpBtn.Parent = MainFrame
+
+-- 6. Nút [DOWN] (Màu vàng chanh)
+local DownBtn = Instance.new("TextButton")
+DownBtn.Size = UDim2.new(0, 65, 0, 45)
+DownBtn.Position = UDim2.new(0, 0, 0, 85)
+DownBtn.BackgroundColor3 = Color3.fromRGB(220, 245, 110) -- Vàng chanh
+DownBtn.Text = "DOWN"
+DownBtn.TextColor3 = Color3.fromRGB(0, 0, 0)
+DownBtn.TextSize = 16
+DownBtn.Font = Enum.Font.SourceSansBold
+DownBtn.Parent = MainFrame
+
+-- 7. Nút [-] Giảm tốc (Màu xanh dương sáng)
+local SpeedDownBtn = Instance.new("TextButton")
+SpeedDownBtn.Size = UDim2.new(0, 65, 0, 45)
+SpeedDownBtn.Position = UDim2.new(0, 65, 0, 85)
+SpeedDownBtn.BackgroundColor3 = Color3.fromRGB(115, 215, 235) -- Xanh dương nhạt
+SpeedDownBtn.Text = "-"
+SpeedDownBtn.TextColor3 = Color3.fromRGB(0, 0, 0)
+SpeedDownBtn.TextSize = 22
+SpeedDownBtn.Font = Enum.Font.SourceSansBold
+SpeedDownBtn.Parent = MainFrame
+
+-- 8. Nút hiển thị Tốc độ [1] (Màu cam)
+local SpeedLabel = Instance.new("TextButton")
+SpeedLabel.Size = UDim2.new(0, 65, 0, 45)
+SpeedLabel.Position = UDim2.new(0, 130, 0, 85)
+SpeedLabel.BackgroundColor3 = Color3.fromRGB(240, 110, 30) -- Cam
+SpeedLabel.Text = "1"
+SpeedLabel.TextColor3 = Color3.fromRGB(0, 0, 0)
+SpeedLabel.TextSize = 20
+SpeedLabel.Font = Enum.Font.SourceSansBold
+SpeedLabel.Parent = MainFrame
+
+-- 9. Nút Bật/Tắt [fly] (Màu vàng)
+local FlyToggleBtn = Instance.new("TextButton")
+FlyToggleBtn.Size = UDim2.new(0, 65, 0, 45)
+FlyToggleBtn.Position = UDim2.new(0, 195, 0, 85)
+FlyToggleBtn.BackgroundColor3 = Color3.fromRGB(245, 240, 85) -- Vàng
+FlyToggleBtn.Text = "fly"
+FlyToggleBtn.TextColor3 = Color3.fromRGB(0, 0, 0)
+FlyToggleBtn.TextSize = 18
+FlyToggleBtn.Font = Enum.Font.SourceSansBold
+FlyToggleBtn.Parent = MainFrame
+
+-- ==================== LOGIC BAY (FLY LOGIC) ====================
+local player = game.Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+local humanoid = character:WaitForChild("Humanoid")
+
+local flying = false
+local speed = 1
+local flySpeedMultiplier = 50
+local bg, bv
+
+local function startFly()
+    if not character or not humanoidRootPart then return end
+    
+    flying = true
+    FlyToggleBtn.BackgroundColor3 = Color3.fromRGB(50, 205, 50) -- Đổi sang xanh khi bật
+    
+    local camera = workspace.CurrentCamera
+    
+    bg = Instance.new("BodyGyro")
+    bg.P = 9e4
+    bg.maxTorque = Vector3.new(9e9, 9e9, 9e9)
+    bg.cframe = humanoidRootPart.CFrame
+    bg.Parent = humanoidRootPart
+    
+    bv = Instance.new("BodyVelocity")
+    bv.velocity = Vector3.new(0, 0, 0)
+    bv.maxForce = Vector3.new(9e9, 9e9, 9e9)
+    bv.Parent = humanoidRootPart
+    
+    humanoid.PlatformStand = true
+    
+    task.spawn(function()
+        while flying do
+            task.wait()
+            local camCF = camera.CFrame
+            local moveDir = Vector3.new(0, 0, 0)
+            
+            -- Hướng di chuyển cơ bản (W, A, S, D)
+            local uis = game:GetService("UserInputService")
+            if uis:IsKeyDown(Enum.KeyCode.W) then
+                moveDir = moveDir + camCF.LookVector
+            end
+            if uis:IsKeyDown(Enum.KeyCode.S) then
+                moveDir = moveDir - camCF.LookVector
+            end
+            if uis:IsKeyDown(Enum.KeyCode.A) then
+                moveDir = moveDir - camCF.RightVector
+            end
+            if uis:IsKeyDown(Enum.KeyCode.D) then
+                moveDir = moveDir + camCF.RightVector
+            end
+            
+            -- Nút UP / DOWN trên GUI hoặc phím Space/Ctrl
+            if uis:IsKeyDown(Enum.KeyCode.Space) then
+                moveDir = moveDir + Vector3.new(0, 1, 0)
+            end
+            if uis:IsKeyDown(Enum.KeyCode.LeftControl) then
+                moveDir = moveDir - Vector3.new(0, 1, 0)
+            end
+            
+            bv.velocity = moveDir * (speed * flySpeedMultiplier)
+            bg.cframe = camCF
+        end
+    end)
+end
+
+local function stopFly()
+    flying = false
+    FlyToggleBtn.BackgroundColor3 = Color3.fromRGB(245, 240, 85) -- Trả về màu vàng ban đầu
+    
+    if bg then bg:Destroy() end
+    if bv then bv:Destroy() end
+    
+    if humanoid then
+        humanoid.PlatformStand = false
+    end
+end
+
+-- Kết nối sự kiện các nút bấm chức năng
+FlyToggleBtn.MouseButton1Click:Connect(function()
+    if flying then
+        stopFly()
+    else
+        startFly()
+    end
+end)
+
+SpeedUpBtn.MouseButton1Click:Connect(function()
+    speed = speed + 1
+    SpeedLabel.Text = tostring(speed)
+end)
+
+SpeedDownBtn.MouseButton1Click:Connect(function()
+    if speed > 1 then
+        speed = speed - 1
+        SpeedLabel.Text = tostring(speed)
+    end
+end)
+
+-- Hỗ trợ giữ nút UP và DOWN trên GUI
+local upHeld, downHeld = false, false
+UpBtn.MouseButton1Down:Connect(function()
+    upHeld = true
+    task.spawn(function()
+        while upHeld and flying do
+            humanoidRootPart.CFrame = humanoidRootPart.CFrame + Vector3.new(0, 1, 0) * (speed * 0.5)
+            task.wait()
+        end
+    end)
+end)
+UpBtn.MouseButton1Up:Connect(function() upHeld = false end)
+
+DownBtn.MouseButton1Down:Connect(function()
+    downHeld = true
+    task.spawn(function()
+        while downHeld and flying do
+            humanoidRootPart.CFrame = humanoidRootPart.CFrame - Vector3.new(0, 1, 0) * (speed * 0.5)
+            task.wait()
+        end
+    end)
+end)
+DownBtn.MouseButton1Up:Connect(function() downHeld = false end)
